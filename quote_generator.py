@@ -3,14 +3,22 @@ import os
 import textwrap
 import json
 import yaml
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+
+def apply_film_grain(image, opacity=0.15):
+    """Applies a film grain effect to a PIL image."""
+    width, height = image.size
+    noise = np.random.normal(loc=128, scale=300, size=(height, width)).clip(0, 255).astype(np.uint8)
+    grain = Image.fromarray(noise, mode="L").convert("RGB")
+    return Image.blend(image, grain, opacity)
 
 def create_quote_image(quote, author, background_path, output_path,
                        font_path, quote_size, width, height):
     # Load background image
     bg = Image.open(background_path).convert("RGB")
 
-    # Resize proportionally (cover logic)
+    # Resize proportionally to cover
     bg_ratio = bg.width / bg.height
     canvas_ratio = width / height
 
@@ -23,22 +31,21 @@ def create_quote_image(quote, author, background_path, output_path,
     new_h = int(bg.height * scale)
     bg = bg.resize((new_w, new_h), Image.LANCZOS)
 
-    # Center crop to match canvas size
+    # Crop to center
     left = (new_w - width) // 2
     top = (new_h - height) // 2
     bg = bg.crop((left, top, left + width, top + height))
 
     # Add translucent overlay
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 120))  # Adjust alpha as needed
-    bg = bg.convert("RGBA")
-    bg = Image.alpha_composite(bg, overlay).convert("RGB")
+    
+    # overlay = Image.new("RGBA", bg.size, (0, 0, 0, 120))
+   # bg = bg.convert("RGBA")
+    # bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
     draw = ImageDraw.Draw(bg)
-
-    # Load font (same for quote and author now)
     font = ImageFont.truetype(font_path, quote_size)
 
-    # Wrap quote text
+    # Wrap and measure quote
     wrapped_quote = textwrap.fill(quote, width=40)
     quote_bbox = draw.textbbox((0, 0), wrapped_quote, font=font, spacing=8)
     quote_w = quote_bbox[2] - quote_bbox[0]
@@ -46,7 +53,6 @@ def create_quote_image(quote, author, background_path, output_path,
     quote_x = (width - quote_w) / 2
     quote_y = (height - quote_h) / 2
 
-    # Draw quote
     draw.multiline_text(
         (quote_x, quote_y),
         wrapped_quote,
@@ -56,20 +62,23 @@ def create_quote_image(quote, author, background_path, output_path,
         spacing=30
     )
 
-    # Author text near bottom (100px from bottom)
-    author_text = f"{author}"
+    # Author near bottom
+    author_text = f"— {author}"
     author_bbox = draw.textbbox((0, 0), author_text, font=font)
     author_w = author_bbox[2] - author_bbox[0]
+    author_h = author_bbox[3] - author_bbox[1]
     author_x = (width - author_w) / 2
-    author_y = height - 100 - (author_bbox[3] - author_bbox[1])
+    author_y = height - 100 - author_h
 
     draw.text((author_x, author_y), author_text, font=font, fill="#DDDDDD")
+
+    # Apply grain if enabled
+    bg = apply_film_grain(bg)
 
     # Save output
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     bg.save(output_path)
     print(f"✅ Saved: {output_path}")
-
 
 def load_quotes_from_file(filepath):
     ext = os.path.splitext(filepath)[1].lower()
@@ -81,7 +90,6 @@ def load_quotes_from_file(filepath):
         else:
             raise ValueError("Unsupported file format. Use JSON or YAML.")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate quote overlay image(s).")
     parser.add_argument("--quote", help="The quote text")
@@ -92,6 +100,7 @@ if __name__ == "__main__":
     parser.add_argument("--quote_size", type=int, default=50)
     parser.add_argument("--width", type=int, default=1080)
     parser.add_argument("--height", type=int, default=1920)
+    parser.add_argument("--grain", action="store_true", help="Apply film grain effect")
     parser.add_argument("--batch", help="Path to JSON or YAML file for batch quote generation")
 
     args = parser.parse_args()
@@ -106,7 +115,7 @@ if __name__ == "__main__":
 
             create_quote_image(
                 quote, author, background, output,
-                args.font, args.quote_size, args.width, args.height
+                args.font, args.quote_size, args.width, args.height,
             )
     elif args.quote and args.author and args.background and args.output:
         create_quote_image(
