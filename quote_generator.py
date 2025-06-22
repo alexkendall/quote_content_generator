@@ -12,7 +12,7 @@ def apply_film_grain(image, opacity=0.15):
     grain = Image.fromarray(noise, mode="L").convert("RGB")
     return Image.blend(image, grain, opacity)
 
-def draw_year_pill(draw, year, font, width, padding=100):
+def draw_year_pill(draw, year, font, width, padding=150):
     text = str(year)
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_w = text_bbox[2] - text_bbox[0]
@@ -85,7 +85,7 @@ def create_quote_image(quote, author, background_path, output_path,
 
     # Optional: Draw year pill
     if year:
-        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
+        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.8))
         draw_year_pill(draw, year, pill_font, width)
 
     # Draw text last
