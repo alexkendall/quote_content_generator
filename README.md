@@ -7,7 +7,7 @@ Generate beautiful quote images by overlaying styled text on custom backgrounds.
 ## ✨ Features
 
 - 📸 Background image with proportional "cover" cropping
-- 📝 Centered quote + author text
+- 📝 Centered quote + author + year text
 - 🌫️ Optional translucent overlay for improved readability
 - 🛠 Command-line usage + batch generation (JSON/YAML)
 - 🔤 Customizable fonts, sizes, canvas dimensions
