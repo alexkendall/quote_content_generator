@@ -1,69 +1,26 @@
 [
-    {
-      "quote": "Fastest way to stop the flow is to put your hand on the faucet.",
-      "author": "Luke Cage",
-      "background": "images/tilt_shift_1.png",
-      "output": "output/luke_cage_0.png"
-    },
-    {
-        "quote": "If I could gift wrap the globe, I'll give you the world.",
-        "author": "Jermaine Cole",
-        "background": "images/tilt_shift_3.png",
-        "output": "output/jermaine_cole_0.png"
+      {
+        "quote": "If it's on your chest, go ahead and prove somethin.",
+        "author": "Cameron Thomaz",
+        "background": "images/brazil.png",
+        "output": "output/wiz_0.png",
+        "apply_grain": true,
+        "year": 2010
       },
       {
-        "quote": "Eyes on the prize, yep, I'm tryna stay focused.",
-        "author": "Markeyvius Cathey",
-        "background": "images/tilt_shift_5.png",
-        "output": "output/key_glock_0.png"
+        "quote": " I'll hazard I can do more damage on my laptop sitting in my pajamas before my first cup of Earl Grey than you can do in a year in the field.",
+        "author": "Q - Skyfall",
+        "background": "images/skyfall_0.png",
+        "output": "output/skyfall_0.png",
+        "apply_grain": true,
+        "year": 2012
       },
       {
-        "quote": "Gotta do better than last year, that's my motto.",
-        "author": "Dominique Jones",
-        "background": "images/tilt_shift_8.png",
-        "output": "output/lil_baby_0.png"
-      },
-      {
-        "quote": "We live in branded houses trademarked by corporations built on bipolar numbers jumping up and down on digital displays, hypnotizing us into the biggest slumber mankind has ever seen. You have to dig pretty deep, kiddo, before finding anything real.",
+        "quote": "Sure, there are grays... but when you come right down to it, at its core, beneath every choice, there's either a one or a zero. You either do something or you don't.",
         "author": "Mr. Robot",
-        "background": "images/tilt_shift_14.png",
-        "output": "output/mr_robot_0.png"
-      },
-      {
-        "quote": "Nothing humbles a man like gravity.",
-        "author": "Luke Cage",
-        "background": "images/cottonmouth_0.jpg",
-        "output": "output/luke_cage_1.png"
-      },
-      {
-        "quote": "Control is an illusion. But sometimes you need the illusion to get by.",
-        "author": "Mr. Robot",
-        "background": "images/tilt_shift_15.png",
-        "output": "output/mr_robot_1.png"
-      },
-      {
-        "quote": "They told me you had true grit, and that is why I came to you.",
-        "author": "Charles Portis - True Grit (1968)",
-        "background": "images/true_grit_3.png",
-        "output": "output/true_grit_0.png"
-      },
-      {
-        "quote": "The more you sweat in training, the less you bleed in battle.",
-        "author": "Military adage",
-        "background": "images/ali_0.png",
-        "output": "output/ali_0.png"
-      },
-    {
-        "quote": "The more you sweat in training, the less you bleed in battle.",
-        "author": "Military adage",
-        "background": "images/ali_0.png",
-        "output": "output/ali_0.png"
-      },
-      {
-        "quote": "You lost your heart. It was the best part of you.",
-        "author": "Luke Cage",
-        "background": "images/tilt_shift_1.png",
-        "output": "output/luke_cage_2.png",
-        "apply_grain": true
+        "background": "images/mr_robot_2.jpg",
+        "output": "output/mr_robot_2.png",
+        "apply_grain": true,
+        "year": 2015
       }
   ]

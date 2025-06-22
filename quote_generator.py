@@ -61,6 +61,9 @@ def create_quote_image(quote, author, background_path, output_path,
     bg = bg.convert("RGBA")
     bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
+    # Apply film grain
+    bg = apply_film_grain(bg)
+
     draw = ImageDraw.Draw(bg)
     font = ImageFont.truetype(font_path, quote_size)
 
@@ -72,6 +75,20 @@ def create_quote_image(quote, author, background_path, output_path,
     quote_x = (width - quote_w) / 2
     quote_y = (height - quote_h) / 2
 
+    # Author near bottom
+    author_text = author
+    author_bbox = draw.textbbox((0, 0), author_text, font=font)
+    author_w = author_bbox[2] - author_bbox[0]
+    author_h = author_bbox[3] - author_bbox[1]
+    author_x = (width - author_w) / 2
+    author_y = height - 100 - author_h
+
+    # Optional: Draw year pill
+    if year:
+        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
+        draw_year_pill(draw, year, pill_font, width)
+
+    # Draw text last
     draw.multiline_text(
         (quote_x, quote_y),
         wrapped_quote,
@@ -81,23 +98,7 @@ def create_quote_image(quote, author, background_path, output_path,
         spacing=30
     )
 
-    # Author near bottom
-    author_text = author
-    author_bbox = draw.textbbox((0, 0), author_text, font=font)
-    author_w = author_bbox[2] - author_bbox[0]
-    author_h = author_bbox[3] - author_bbox[1]
-    author_x = (width - author_w) / 2
-    author_y = height - 100 - author_h
-
     draw.text((author_x, author_y), author_text, font=font, fill="#DDDDDD")
-
-    # Optional: Draw year pill
-    if year:
-        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
-        draw_year_pill(draw, year, pill_font, width)
-
-    # Apply film grain
-    bg = apply_film_grain(bg)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     bg.save(output_path)
