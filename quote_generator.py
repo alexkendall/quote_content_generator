@@ -7,15 +7,35 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 def apply_film_grain(image, opacity=0.15):
-    """Applies a film grain effect to a PIL image."""
     width, height = image.size
     noise = np.random.normal(loc=128, scale=600, size=(height, width)).clip(0, 255).astype(np.uint8)
     grain = Image.fromarray(noise, mode="L").convert("RGB")
     return Image.blend(image, grain, opacity)
 
+def draw_year_pill(draw, year, font, width, padding=100):
+    text = str(year)
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = text_bbox[2] - text_bbox[0]
+    text_h = text_bbox[3] - text_bbox[1]
+
+    pill_w = text_w + 80
+    pill_h = text_h + 40
+
+    x0 = width - pill_w - padding
+    y0 = padding
+    x1 = x0 + pill_w
+    y1 = y0 + pill_h
+
+    # Draw rounded rectangle (pill shape)
+    draw.rounded_rectangle([(x0, y0), (x1, y1)], radius=pill_h // 2, fill=(255, 255, 255, 200))
+
+    # Draw year text centered in pill
+    text_x = x0 + (pill_w - text_w) / 2
+    text_y = y0 + (pill_h - text_h) / 2
+    draw.text((text_x, text_y), text, font=font, fill="black")
+
 def create_quote_image(quote, author, background_path, output_path,
-                       font_path, quote_size, width, height):
-    # Load background image
+                       font_path, quote_size, width, height, year=None):
     bg = Image.open(background_path).convert("RGB")
 
     # Resize proportionally to cover
@@ -37,8 +57,7 @@ def create_quote_image(quote, author, background_path, output_path,
     bg = bg.crop((left, top, left + width, top + height))
 
     # Add translucent overlay
-    
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 120))
+    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 60))
     bg = bg.convert("RGBA")
     bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
@@ -63,7 +82,7 @@ def create_quote_image(quote, author, background_path, output_path,
     )
 
     # Author near bottom
-    author_text = f"{author}"
+    author_text = author
     author_bbox = draw.textbbox((0, 0), author_text, font=font)
     author_w = author_bbox[2] - author_bbox[0]
     author_h = author_bbox[3] - author_bbox[1]
@@ -72,10 +91,14 @@ def create_quote_image(quote, author, background_path, output_path,
 
     draw.text((author_x, author_y), author_text, font=font, fill="#DDDDDD")
 
-    # Apply grain if enabled
+    # Optional: Draw year pill
+    if year:
+        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
+        draw_year_pill(draw, year, pill_font, width)
+
+    # Apply film grain
     bg = apply_film_grain(bg)
 
-    # Save output
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     bg.save(output_path)
     print(f"✅ Saved: {output_path}")
@@ -101,6 +124,7 @@ if __name__ == "__main__":
     parser.add_argument("--width", type=int, default=1080)
     parser.add_argument("--height", type=int, default=1920)
     parser.add_argument("--grain", action="store_true", help="Apply film grain effect")
+    parser.add_argument("--year", help="Optional year to display in top-right corner")
     parser.add_argument("--batch", help="Path to JSON or YAML file for batch quote generation")
 
     args = parser.parse_args()
@@ -112,15 +136,18 @@ if __name__ == "__main__":
             author = entry["author"]
             background = entry["background"]
             output = entry.get("output", f"output/quote_{i + 1}.png")
+            year = entry.get("year")
 
             create_quote_image(
                 quote, author, background, output,
                 args.font, args.quote_size, args.width, args.height,
+                year=year
             )
     elif args.quote and args.author and args.background and args.output:
         create_quote_image(
             args.quote, args.author, args.background, args.output,
-            args.font, args.quote_size, args.width, args.height
+            args.font, args.quote_size, args.width, args.height,
+            year=args.year
         )
     else:
         parser.print_help()
