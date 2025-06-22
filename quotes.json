@@ -1,38 +1,26 @@
 [
-    {
-      "quote": "Fastest way to stop the flow is to put your hand on the faucet.",
-      "author": "Luke Cage",
-      "background": "images/tilt_shift_1.png",
-      "output": "output/luke_cage_0.png"
-    },
-    {
-      "quote": "Sometimes it’s not about being strong, but staying standing.",
-      "author": "Jessica Jones",
-      "background": "images/tilt_shift_0.png",
-      "output": "output/jessica_jones_0.png"
-    },
-    {
-        "quote": "If I could gift wrap the globe, I'll give you the world.",
-        "author": "Jermaine Cole",
-        "background": "images/tilt_shift_3.png",
-        "output": "output/jermaine_cole_0.png"
+      {
+        "quote": "If it's on your chest, go ahead and prove somethin.",
+        "author": "Cameron Thomaz",
+        "background": "images/brazil.png",
+        "output": "output/wiz_0.png",
+        "apply_grain": true,
+        "year": 2010
       },
       {
-        "quote": "Tyler is here.",
-        "author": "Alex Harrison",
-        "background": "images/tilt_shift_0.png",
-        "output": "output/tyler_ligon.png"
+        "quote": " I'll hazard I can do more damage on my laptop sitting in my pajamas before my first cup of Earl Grey than you can do in a year in the field.",
+        "author": "Q - Skyfall",
+        "background": "images/skyfall_0.png",
+        "output": "output/skyfall_0.png",
+        "apply_grain": true,
+        "year": 2012
       },
       {
-        "quote": "Ash lives at 23 Lafayette Ave. NE Apartment 1.",
-        "author": "Ash Harrison",
-        "background": "images/tilt_shift_1.png",
-        "output": "output/ash_0.png"
-      },
-      {
-        "quote": "Ash lives at 23 Lafayette Ave. NE Apartment 1.",
-        "author": "Ash Harrison",
-        "background": "images/tilt_shift_1.png",
-        "output": "output/ash_0.png"
+        "quote": "Sure, there are grays... but when you come right down to it, at its core, beneath every choice, there's either a one or a zero. You either do something or you don't.",
+        "author": "Mr. Robot",
+        "background": "images/mr_robot_2.jpg",
+        "output": "output/mr_robot_2.png",
+        "apply_grain": true,
+        "year": 2015
       }
   ]

@@ -1,2 +1,3 @@
 Pillow>=10.0.0
-PyYAML>=6.0  # Only needed if using YAML batch files
+numpy>=1.24.0
+PyYAML>=6.0
