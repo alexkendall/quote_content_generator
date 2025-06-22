@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 def apply_film_grain(image, opacity=0.15):
     """Applies a film grain effect to a PIL image."""
     width, height = image.size
-    noise = np.random.normal(loc=128, scale=300, size=(height, width)).clip(0, 255).astype(np.uint8)
+    noise = np.random.normal(loc=128, scale=600, size=(height, width)).clip(0, 255).astype(np.uint8)
     grain = Image.fromarray(noise, mode="L").convert("RGB")
     return Image.blend(image, grain, opacity)
 
@@ -38,9 +38,9 @@ def create_quote_image(quote, author, background_path, output_path,
 
     # Add translucent overlay
     
-    # overlay = Image.new("RGBA", bg.size, (0, 0, 0, 120))
-   # bg = bg.convert("RGBA")
-    # bg = Image.alpha_composite(bg, overlay).convert("RGB")
+    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 120))
+    bg = bg.convert("RGBA")
+    bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
     draw = ImageDraw.Draw(bg)
     font = ImageFont.truetype(font_path, quote_size)
@@ -63,7 +63,7 @@ def create_quote_image(quote, author, background_path, output_path,
     )
 
     # Author near bottom
-    author_text = f"— {author}"
+    author_text = f"{author}"
     author_bbox = draw.textbbox((0, 0), author_text, font=font)
     author_w = author_bbox[2] - author_bbox[0]
     author_h = author_bbox[3] - author_bbox[1]
