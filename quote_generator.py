@@ -12,8 +12,7 @@ def apply_film_grain(image, opacity=0.15):
     grain = Image.fromarray(noise, mode="L").convert("RGB")
     return Image.blend(image, grain, opacity)
 
-def draw_year_pill(draw, year, font, width, padding=150):
-    text = str(year)
+def draw_pill(draw, text, font, x, y):
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_w = text_bbox[2] - text_bbox[0]
     text_h = text_bbox[3] - text_bbox[1]
@@ -21,24 +20,19 @@ def draw_year_pill(draw, year, font, width, padding=150):
     pill_w = text_w + 80
     pill_h = text_h + 40
 
-    x0 = width - pill_w - padding
-    y0 = padding
-    x1 = x0 + pill_w
-    y1 = y0 + pill_h
+    x1 = x + pill_w
+    y1 = y + pill_h
 
-    # Draw rounded rectangle (pill shape)
-    draw.rounded_rectangle([(x0, y0), (x1, y1)], radius=pill_h // 2, fill=(255, 255, 255, 200))
+    draw.rounded_rectangle([(x, y), (x1, y1)], radius=pill_h // 2, fill=(255, 255, 255, 200))
 
-    # Draw year text centered in pill
-    text_x = x0 + (pill_w - text_w) / 2
-    text_y = y0 + (pill_h - text_h) / 2
+    text_x = x + (pill_w - text_w) / 2
+    text_y = y + (pill_h - text_h) / 2
     draw.text((text_x, text_y), text, font=font, fill="black")
 
 def create_quote_image(quote, author, background_path, output_path,
-                       font_path, quote_size, width, height, year=None):
+                       font_path, quote_size, width, height, year=None, cast=None, director=None):
     bg = Image.open(background_path).convert("RGB")
 
-    # Resize proportionally to cover
     bg_ratio = bg.width / bg.height
     canvas_ratio = width / height
 
@@ -51,23 +45,19 @@ def create_quote_image(quote, author, background_path, output_path,
     new_h = int(bg.height * scale)
     bg = bg.resize((new_w, new_h), Image.LANCZOS)
 
-    # Crop to center
     left = (new_w - width) // 2
     top = (new_h - height) // 2
     bg = bg.crop((left, top, left + width, top + height))
 
-    # Add translucent overlay
     overlay = Image.new("RGBA", bg.size, (0, 0, 0, 60))
     bg = bg.convert("RGBA")
     bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
-    # Apply film grain
     bg = apply_film_grain(bg)
 
     draw = ImageDraw.Draw(bg)
     font = ImageFont.truetype(font_path, quote_size)
 
-    # Wrap and measure quote
     wrapped_quote = textwrap.fill(quote, width=40)
     quote_bbox = draw.textbbox((0, 0), wrapped_quote, font=font, spacing=8)
     quote_w = quote_bbox[2] - quote_bbox[0]
@@ -75,20 +65,21 @@ def create_quote_image(quote, author, background_path, output_path,
     quote_x = (width - quote_w) / 2
     quote_y = (height - quote_h) / 2
 
-    # Author near bottom
     author_text = author
     author_bbox = draw.textbbox((0, 0), author_text, font=font)
     author_w = author_bbox[2] - author_bbox[0]
     author_h = author_bbox[3] - author_bbox[1]
     author_x = (width - author_w) / 2
-    author_y = height - 100 - author_h
+    author_y = height - 150 - author_h
 
-    # Optional: Draw year pill
+    pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
+
     if year:
-        pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.8))
-        draw_year_pill(draw, year, pill_font, width)
+        draw_pill(draw, str(year), pill_font, x=width - 100 - 80, y=100)
 
-    # Draw text last
+    if director:
+        draw_pill(draw, f"Dir. {director}", pill_font, x=100, y=100)
+
     draw.multiline_text(
         (quote_x, quote_y),
         wrapped_quote,
@@ -99,6 +90,17 @@ def create_quote_image(quote, author, background_path, output_path,
     )
 
     draw.text((author_x, author_y), author_text, font=font, fill="#DDDDDD")
+
+    if cast:
+        cast_font = ImageFont.truetype(font_path, int(quote_size * 0.5))
+        cast_text = cast
+        cast_bbox = draw.textbbox((0, 0), cast_text, font=cast_font)
+        cast_w = cast_bbox[2] - cast_bbox[0]
+        cast_h = cast_bbox[3] - cast_bbox[1]
+        cast_x = (width - cast_w) / 2
+        cast_y = author_y + author_h + 10
+
+        draw.text((cast_x, cast_y), cast_text, font=cast_font, fill="#AAAAAA")
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     bg.save(output_path)
@@ -126,6 +128,8 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=1920)
     parser.add_argument("--grain", action="store_true", help="Apply film grain effect")
     parser.add_argument("--year", help="Optional year to display in top-right corner")
+    parser.add_argument("--cast", help="Optional cast member to display below author")
+    parser.add_argument("--director", help="Optional director name to display in top-left corner")
     parser.add_argument("--batch", help="Path to JSON or YAML file for batch quote generation")
 
     args = parser.parse_args()
@@ -138,17 +142,19 @@ if __name__ == "__main__":
             background = entry["background"]
             output = entry.get("output", f"output/quote_{i + 1}.png")
             year = entry.get("year")
+            cast = entry.get("cast")
+            director = entry.get("director")
 
             create_quote_image(
                 quote, author, background, output,
                 args.font, args.quote_size, args.width, args.height,
-                year=year
+                year=year, cast=cast, director=director
             )
     elif args.quote and args.author and args.background and args.output:
         create_quote_image(
             args.quote, args.author, args.background, args.output,
             args.font, args.quote_size, args.width, args.height,
-            year=args.year
+            year=args.year, cast=args.cast, director=args.director
         )
     else:
         parser.print_help()
