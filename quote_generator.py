@@ -4,7 +4,9 @@ import textwrap
 import json
 import yaml
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageStat
+import colorsys
+
 
 def apply_film_grain(image, opacity=0.15):
     width, height = image.size
@@ -12,7 +14,31 @@ def apply_film_grain(image, opacity=0.15):
     grain = Image.fromarray(noise, mode="L").convert("RGB")
     return Image.blend(image, grain, opacity)
 
-def draw_pill(draw, text, font, x, y):
+def get_average_color(image):
+    stat = ImageStat.Stat(image)
+    r, g, b = [int(c) for c in stat.mean[:3]]
+    return (r, g, b)
+
+def get_vibrant_color(image):
+    small_img = image.resize((64, 64))
+    pixels = np.array(small_img).reshape((-1, 3))
+    max_saturation = -1
+    vibrant = (255, 255, 255)
+
+    for r, g, b in pixels:
+        h, l, s = colorsys.rgb_to_hls(r/255, g/255, b/255)
+        if s > max_saturation and l > 0.2 and l < 0.8:
+            max_saturation = s
+            vibrant = (r, g, b)
+
+    return vibrant
+
+def get_contrasting_text_color(bg_color):
+    r, g, b = [int(c) for c in bg_color]
+    brightness = (r * 299 + g * 587 + b * 114) / 1000
+    return "black" if brightness > 150 else "white"
+
+def draw_pill(draw, text, font, x, y, bg_color):
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_w = text_bbox[2] - text_bbox[0]
     text_h = text_bbox[3] - text_bbox[1]
@@ -23,15 +49,19 @@ def draw_pill(draw, text, font, x, y):
     x1 = x + pill_w
     y1 = y + pill_h
 
-    draw.rounded_rectangle([(x, y), (x1, y1)], radius=pill_h // 2, fill=(255, 255, 255, 200))
+    draw.rounded_rectangle([(x, y), (x1, y1)], radius=pill_h // 2, fill=bg_color)
 
     text_x = x + (pill_w - text_w) / 2
     text_y = y + (pill_h - text_h) / 2
-    draw.text((text_x, text_y), text, font=font, fill="black")
+    text_color = get_contrasting_text_color(bg_color)
+    draw.text((text_x, text_y), text, font=font, fill=text_color)
 
 def create_quote_image(quote, author, background_path, output_path,
                        font_path, quote_size, width, height, year=None, cast=None, director=None):
     bg = Image.open(background_path).convert("RGB")
+
+    avg_color = get_average_color(bg)
+    vibrant_color = get_vibrant_color(bg)
 
     bg_ratio = bg.width / bg.height
     canvas_ratio = width / height
@@ -75,30 +105,30 @@ def create_quote_image(quote, author, background_path, output_path,
     pill_font = ImageFont.truetype(font_path, size=int(quote_size * 0.6))
 
     if year:
-        draw_pill(draw, str(year), pill_font, x=width - 100 - 80, y=100)
+        draw_pill(draw, str(year), pill_font, x=width - 100 - 140, y=100, bg_color=avg_color)
 
     if director:
-        draw_pill(draw, f"Dir. {director}", pill_font, x=100, y=100)
+        draw_pill(draw, f"Dir. {director}", pill_font, x=100, y=100, bg_color=vibrant_color)
 
     draw.multiline_text(
         (quote_x, quote_y),
         wrapped_quote,
         font=font,
         fill="white",
-        align="center",
+        align="left",
         spacing=30
     )
 
     draw.text((author_x, author_y), author_text, font=font, fill="#DDDDDD")
 
     if cast:
-        cast_font = ImageFont.truetype(font_path, int(quote_size * 0.5))
+        cast_font = ImageFont.truetype(font_path, int(quote_size * 0.65))
         cast_text = cast
         cast_bbox = draw.textbbox((0, 0), cast_text, font=cast_font)
         cast_w = cast_bbox[2] - cast_bbox[0]
         cast_h = cast_bbox[3] - cast_bbox[1]
-        cast_x = (width - cast_w) / 2
-        cast_y = author_y + author_h + 10
+        cast_x = quote_x + quote_w - cast_w
+        cast_y = quote_y + quote_h + 100
 
         draw.text((cast_x, cast_y), cast_text, font=cast_font, fill="#AAAAAA")
 
@@ -128,7 +158,7 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=1920)
     parser.add_argument("--grain", action="store_true", help="Apply film grain effect")
     parser.add_argument("--year", help="Optional year to display in top-right corner")
-    parser.add_argument("--cast", help="Optional cast member to display below author")
+    parser.add_argument("--cast", help="Optional cast member to display near quote")
     parser.add_argument("--director", help="Optional director name to display in top-left corner")
     parser.add_argument("--batch", help="Path to JSON or YAML file for batch quote generation")
 
